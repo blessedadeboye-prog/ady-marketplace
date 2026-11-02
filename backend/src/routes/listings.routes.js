@@ -85,7 +85,7 @@ router.get("/:id", async (req, res) => {
             id: true, name: true, avatarUrl: true, bio: true,
             department: true, faculty: true, rating: true, ratingCount: true,
             createdAt: true, verificationStatus: true, phoneVerified: true,
-            identityVerified: true,
+            identityVerified: true, paystackSubaccountCode: true,
           },
         },
       },
@@ -96,6 +96,14 @@ router.get("/:id", async (req, res) => {
       where: { sellerId: listing.seller.id, status: "OPEN" },
     });
     listing.seller.badges = getBadges(listing.seller, unresolvedDisputes);
+
+    // The Pay button shows only when the seller has connected a bank account
+    // and the price is inside the launch limits. The code itself is never sent out.
+    const payMin = Number(process.env.PAY_MIN_NAIRA || 5000);
+    const payMax = Number(process.env.PAY_MAX_NAIRA || 20000);
+    listing.canPay = !!listing.seller.paystackSubaccountCode && listing.price >= payMin && listing.price <= payMax;
+    listing.payLimits = { min: payMin, max: payMax };
+    delete listing.seller.paystackSubaccountCode;
 
     // Fire-and-forget view count bump — never blocks or fails the response
     prisma.listing.update({
@@ -113,15 +121,36 @@ router.get("/:id", async (req, res) => {
 // POST /api/listings — create a new listing (with photo uploads)
 router.post("/", requireAuth, requireVerified, upload.array("images", 6), async (req, res) => {
   try {
-    const { title, description, price, categoryId, condition, location } = req.body;
+    const { title, description, price, categoryId, condition, location, refundRepaymentAccepted } = req.body;
     if (!title || !price || !categoryId || !condition || !location) {
       return res.status(400).json({ error: "Please fill in all required fields" });
+    }
+    if (refundRepaymentAccepted !== "true") {
+      return res.status(400).json({
+        error: "Please tick the box agreeing to repay a refund within 3 days if a dispute goes the buyer's way.",
+      });
+    }
+
+    // A seller who owes an overdue refund cannot post until it is repaid.
+    const overdue = await prisma.transaction.findFirst({
+      where: {
+        sellerId: req.user.id,
+        status: "REFUNDED",
+        sellerRepaidAt: null,
+        sellerRepayDueAt: { lt: new Date() },
+      },
+    });
+    if (overdue) {
+      return res.status(403).json({
+        error: "You owe a refund that is more than 3 days old. You cannot post new listings until it is repaid. Contact contact@adymarketplace.com.",
+      });
     }
 
     const listing = await prisma.listing.create({
       data: {
         title, description, price: parseFloat(price), categoryId, condition, location,
         sellerId: req.user.id,
+        refundRepaymentAcceptedAt: new Date(),
       },
     });
 

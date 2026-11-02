@@ -7,7 +7,7 @@ const TIPS = [
   { title: "Price it fairly", body: "Check what similar items are listed for before setting your price." },
   { title: "Respond quickly", body: "Buyers move on fast — replying within a few hours makes a real difference." },
   { title: "Get verified", body: "AKSU Verified, Phone Verified, and Identity Verified badges all make buyers more comfortable paying you." },
-  { title: "Use secure payment", body: "Accepting payment through ADY Marketplace protects you too — funds are confirmed before you ship or hand anything over." },
+  { title: "Use in-app payment", body: "Connect your bank account in your Profile. Buyers then pay you straight through Paystack, and you hand over the item only after you see the payment confirmed in the app. If a dispute goes to the buyer, you repay the refund within 3 days." },
 ];
 
 export default function SellerGuide() {

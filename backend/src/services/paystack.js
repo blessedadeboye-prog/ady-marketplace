@@ -29,8 +29,10 @@ async function initializeTransaction({ email, amountKobo, reference, subaccountC
   if (subaccountCode) {
     body.subaccount = subaccountCode;
     if (platformFeeKobo != null) {
+      // transaction_charge is the amount ADY keeps. The rest goes to the seller.
+      // bearer "account" means ADY's main account pays Paystack's own fees.
       body.transaction_charge = platformFeeKobo;
-      body.bearer = "subaccount";
+      body.bearer = "account";
     }
   }
   return paystackRequest("/transaction/initialize", { method: "POST", body: JSON.stringify(body) });

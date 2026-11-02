@@ -96,6 +96,8 @@ export const api = {
   resolveDispute: (id, status) => request(`/admin/disputes/${id}/resolve`, { method: "PATCH", body: { status } }),
   releaseDisputeFunds: (id) => request(`/admin/disputes/${id}/release-funds`, { method: "PATCH" }),
   refundDisputeBuyer: (id) => request(`/admin/disputes/${id}/refund-buyer`, { method: "PATCH" }),
+  getSellerDebts: () => request("/admin/seller-debts"),
+  markRefundRepaid: (id) => request(`/admin/transactions/${id}/mark-repaid`, { method: "PATCH" }),
   getAdminRiskFlags: () => request("/admin/risk-flags"),
   resolveRiskFlag: (id) => request(`/admin/risk-flags/${id}/resolve`, { method: "PATCH" }),
 
@@ -104,7 +106,7 @@ export const api = {
 
   registerDevice: (fingerprint) => request("/device/register", { method: "POST", body: { fingerprint } }),
 
-  createTransaction: (listingId) => request("/transactions", { method: "POST", body: { listingId } }),
+  createTransaction: (listingId, inspectionAccepted) => request("/transactions", { method: "POST", body: { listingId, inspectionAccepted } }),
   getTransaction: (id) => request(`/transactions/${id}`),
   getMyTransactionForListing: (listingId) => request(`/transactions/mine/${listingId}`),
   confirmTransactionReceived: (id) => request(`/transactions/${id}/confirm-received`, { method: "POST" }),

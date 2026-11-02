@@ -26,6 +26,8 @@ const Admin = lazy(() => import("./pages/Admin"));
 const TransactionCallback = lazy(() => import("./pages/TransactionCallback"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
+const Refunds = lazy(() => import("./pages/Refunds"));
+const Payments = lazy(() => import("./pages/Payments"));
 const Guidelines = lazy(() => import("./pages/Guidelines"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const About = lazy(() => import("./pages/About"));
@@ -67,6 +69,8 @@ export default function App() {
             <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            <Route path="/refunds" element={<Refunds />} />
+            <Route path="/payments" element={<Payments />} />
             <Route path="/guidelines" element={<Guidelines />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/about" element={<About />} />
@@ -128,6 +132,8 @@ export default function App() {
           <div className="flex justify-center gap-4 flex-wrap">
             <Link to="/privacy" className="hover:underline">Privacy Policy</Link>
             <Link to="/terms" className="hover:underline">Terms of Service</Link>
+            <Link to="/refunds" className="hover:underline">Refund Policy</Link>
+            <Link to="/payments" className="hover:underline">Payments and Fees</Link>
             <Link to="/help" className="hover:underline">Contact</Link>
           </div>
         </div>

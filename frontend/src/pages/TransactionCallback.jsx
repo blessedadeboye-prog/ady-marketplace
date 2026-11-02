@@ -7,17 +7,17 @@ const STATUS_COPY = {
     title: "Confirming your payment...",
     body: "This usually takes just a few seconds. If it's been longer than a minute, refresh this page.",
   },
-  HELD: {
+  PAID: {
     title: "Payment confirmed!",
-    body: "Your payment is held securely until you confirm you've received the item — you'll find that option on the listing page once it arrives.",
+    body: "Your payment went to the seller. Once you have the item, tap Confirm received on the listing page. You have 48 hours to report a problem.",
   },
-  RELEASED: {
-    title: "Payment already released",
-    body: "This transaction is complete.",
+  COMPLETED: {
+    title: "Sale confirmed",
+    body: "This sale is complete.",
   },
   DISPUTED: {
-    title: "This transaction is under dispute",
-    body: "An admin is reviewing it.",
+    title: "Problem reported",
+    body: "Our team is reviewing this sale and will decide within 5 working days.",
   },
   REFUNDED: {
     title: "Payment refunded",

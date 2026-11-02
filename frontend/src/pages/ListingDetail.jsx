@@ -45,6 +45,7 @@ export default function ListingDetail() {
   const [transaction, setTransaction] = useState(null);
   const [paymentStatus, setPaymentStatus] = useState("");
   const [payingNow, setPayingNow] = useState(false);
+  const [inspectionTick, setInspectionTick] = useState(false);
 
   useEffect(() => {
     api.getListing(id).then((d) => setListing(d.listing)).catch((e) => setError(e.message));
@@ -108,7 +109,7 @@ export default function ListingDetail() {
     setPaymentStatus("");
     setPayingNow(true);
     try {
-      const data = await api.createTransaction(id);
+      const data = await api.createTransaction(id, inspectionTick);
       window.location.href = data.authorizationUrl;
     } catch (err) {
       setPaymentStatus(err.message);
@@ -120,8 +121,8 @@ export default function ListingDetail() {
     setPaymentStatus("");
     try {
       await api.confirmTransactionReceived(transaction.id);
-      setTransaction({ ...transaction, status: "RELEASED" });
-      setPaymentStatus("Payment released to the seller. Don't forget to leave a review!");
+      setTransaction({ ...transaction, status: "COMPLETED" });
+      setPaymentStatus("Thanks for confirming. Don't forget to leave a review!");
     } catch (err) {
       setPaymentStatus(err.message);
     }
@@ -132,7 +133,7 @@ export default function ListingDetail() {
     try {
       await api.disputeTransaction(transaction.id, reason, "Raised from the listing page.");
       setTransaction({ ...transaction, status: "DISPUTED" });
-      setPaymentStatus("Payment disputed — an admin will review it and your funds stay held until then.");
+      setPaymentStatus("Problem reported. Our team will review both sides and decide within 5 working days.");
     } catch (err) {
       setPaymentStatus(err.message);
     }
@@ -198,40 +199,70 @@ export default function ListingDetail() {
           </div>
         </div>
 
-        {!isOwner && listing.status === "ACTIVE" && !transaction && (
+        {!isOwner && listing.status === "ACTIVE" && !transaction && listing.canPay && (
           <div className="mt-4 border border-brand-200 bg-brand-50 rounded-md p-3">
-            <p className="text-sm font-medium mb-1">Pay securely through ADY Marketplace</p>
-            <p className="text-xs text-ink-500 mb-2">Your payment is held until you confirm you've received the item — safer than sending money directly.</p>
+            <p className="text-sm font-medium mb-1">Inspect first, then pay in the app</p>
+            <p className="text-xs text-ink-500 mb-2">
+              Meet the seller in a public spot and check the item. Pay only when you are happy with it.
+              You pay {formatNaira(Math.round(listing.price * 1.03))}, which is the price plus a 3% fee.
+              Payment goes straight to the seller's bank account.
+            </p>
+            <label className="flex items-start gap-2 text-xs mb-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={inspectionTick}
+                onChange={(e) => setInspectionTick(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>I inspected this item and accept its condition.</span>
+            </label>
             <button
               onClick={handleBuyNow}
-              disabled={payingNow}
+              disabled={payingNow || !inspectionTick}
               className="w-full bg-brand-600 hover:bg-brand-700 text-white rounded-md py-2 text-sm font-medium disabled:opacity-60"
             >
-              {payingNow ? "Redirecting to payment..." : `Buy now — ${formatNaira(listing.price)}`}
+              {payingNow ? "Redirecting to payment..." : `Pay ${formatNaira(Math.round(listing.price * 1.03))}`}
             </button>
           </div>
         )}
 
-        {transaction && transaction.status === "PENDING" && (
-          <p className="mt-4 text-sm text-ink-500">Payment initiated — complete checkout to secure this purchase.</p>
+        {!isOwner && listing.status === "ACTIVE" && !transaction && !listing.canPay && (
+          <p className="mt-4 text-xs text-ink-500">
+            Payment in the app works for items from {formatNaira(listing.payLimits?.min ?? 5000)} to {formatNaira(listing.payLimits?.max ?? 20000)}
+            {" "}from sellers who connected a bank account. Otherwise, meet in person and follow the Safety Tips.
+          </p>
         )}
 
-        {transaction && transaction.status === "HELD" && (
+        {transaction && transaction.status === "PENDING" && (
+          <p className="mt-4 text-sm text-ink-500">Payment started. Complete checkout to finish this purchase.</p>
+        )}
+
+        {transaction && transaction.status === "PAID" && transaction.buyerId === user?.id && (
           <div className="mt-4 border border-ink-300/40 rounded-md p-3 space-y-2">
-            <p className="text-sm font-medium">Payment held (₦{(transaction.totalAmount / 100).toLocaleString("en-NG")}) — confirm once you've received the item.</p>
-            <div className="flex gap-2">
-              <button onClick={handleConfirmReceived} className="text-xs bg-green-600 text-white rounded-md px-3 py-1.5">Confirm received — release payment</button>
-              <button onClick={() => handleDisputePayment("Item never received")} className="text-xs border border-red-200 text-red-600 rounded-md px-3 py-1.5">Something's wrong</button>
+            <p className="text-sm font-medium">You paid ₦{(transaction.totalAmount / 100).toLocaleString("en-NG")}. Confirm once the seller hands over the item.</p>
+            <p className="text-xs text-ink-500">You have 48 hours after payment to report a problem. After that, the sale is final.</p>
+            <div className="flex flex-wrap gap-2">
+              <button onClick={handleConfirmReceived} className="text-xs bg-green-600 text-white rounded-md px-3 py-1.5">Confirm received</button>
+              <button onClick={() => handleDisputePayment("Seller did not hand over the item")} className="text-xs border border-red-200 text-red-600 rounded-md px-3 py-1.5">Seller did not hand over the item</button>
+              <button onClick={() => handleDisputePayment("Different item from the one I inspected")} className="text-xs border border-red-200 text-red-600 rounded-md px-3 py-1.5">Different item from the one I inspected</button>
             </div>
           </div>
         )}
 
-        {transaction && transaction.status === "RELEASED" && (
-          <p className="mt-4 text-sm text-green-700">✓ Payment released to the seller.</p>
+        {transaction && transaction.status === "PAID" && transaction.sellerId === user?.id && (
+          <p className="mt-4 text-sm text-green-700">Payment received. Hand over the item to the buyer.</p>
+        )}
+
+        {transaction && transaction.status === "COMPLETED" && (
+          <p className="mt-4 text-sm text-green-700">✓ Sale confirmed.</p>
         )}
 
         {transaction && transaction.status === "DISPUTED" && (
-          <p className="mt-4 text-sm text-yellow-700">Payment disputed — an admin is reviewing this transaction.</p>
+          <p className="mt-4 text-sm text-yellow-700">Problem reported. Our team is reviewing this sale.</p>
+        )}
+
+        {transaction && transaction.status === "REFUNDED" && (
+          <p className="mt-4 text-sm text-yellow-700">This sale was refunded to the buyer.</p>
         )}
 
         {paymentStatus && <p className="text-xs text-ink-500 mt-2">{paymentStatus}</p>}

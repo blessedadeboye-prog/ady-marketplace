@@ -264,4 +264,39 @@ router.patch("/disputes/:id/refund-buyer", async (req, res) => {
   }
 });
 
+// Refunds the business paid that the seller has not yet repaid.
+router.get("/seller-debts", async (req, res) => {
+  try {
+    const debts = await prisma.transaction.findMany({
+      where: { status: "REFUNDED", sellerRepaidAt: null },
+      orderBy: { sellerRepayDueAt: "asc" },
+      include: {
+        listing: { select: { id: true, title: true } },
+        seller: { select: { id: true, name: true, email: true, phone: true } },
+      },
+    });
+    res.json({ debts });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not load seller debts" });
+  }
+});
+
+router.patch("/transactions/:id/mark-repaid", async (req, res) => {
+  try {
+    const tx = await prisma.transaction.findUnique({ where: { id: req.params.id } });
+    if (!tx || tx.status !== "REFUNDED") {
+      return res.status(400).json({ error: "This sale has no refund to repay" });
+    }
+    await prisma.transaction.update({
+      where: { id: tx.id },
+      data: { sellerRepaidAt: new Date() },
+    });
+    res.json({ message: "Marked as repaid" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Could not mark as repaid" });
+  }
+});
+
 module.exports = router;

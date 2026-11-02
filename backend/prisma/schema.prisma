@@ -83,6 +83,7 @@ model Listing {
   itemVerified Boolean          @default(false) // "Item Inspected" badge — SEPARATE from seller verification (a verified student != a verified item). Admin sets this after a real physical check, per item.
   boostedUntil DateTime?        // paid promotion (self-serve) — treated the same as `featured` (admin-curated) for surfacing purposes, but expires on its own
   viewCount   Int               @default(0)
+  refundRepaymentAcceptedAt DateTime? // seller ticked the box agreeing to repay a refund within 3 days
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
 
@@ -244,8 +245,14 @@ model Transaction {
   totalAmount  Int // kobo, itemAmount + platformFee
 
   status String @default("PENDING")
-  // PENDING -> HELD -> RELEASED
-  //         -> DISPUTED -> REFUNDED | RELEASED (after admin resolution)
+  // Direct-payment model: Paystack pays the seller at the time of payment. We hold no funds.
+  // PENDING -> PAID -> COMPLETED (buyer confirmed, or the 48 hour window passed)
+  //                 -> DISPUTED -> REFUNDED | COMPLETED (after admin decision)
+
+  paidAt               DateTime? // when Paystack confirmed payment; starts the 48 hour report window
+  inspectionAcceptedAt DateTime? // buyer ticked "I inspected this item and accept its condition"
+  sellerRepayDueAt     DateTime? // set when a refund is paid: seller must repay by this date
+  sellerRepaidAt       DateTime? // set by admin once the seller has repaid
 
   providerReference  String? @unique // Paystack transaction reference
   providerSubaccount String?         // seller's Paystack subaccount code, if payment was auto-split

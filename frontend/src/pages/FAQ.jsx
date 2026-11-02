@@ -4,7 +4,7 @@ import { ChevronDown } from "lucide-react";
 const FAQS = [
   {
     q: "Is ADY Marketplace free to use?",
-    a: "Yes — browsing, listing, and messaging are free. A small platform fee applies only when you pay for an item through our secure payment option.",
+    a: "Yes — browsing, listing, and messaging are free. A small fee applies only when you pay for an item through the app. The buyer pays 3% on top of the price and the seller pays 2% out of the price.",
   },
   {
     q: "Do all users need to be verified students?",
@@ -12,7 +12,7 @@ const FAQS = [
   },
   {
     q: "How do payments work?",
-    a: "When you buy through ADY Marketplace, your payment is held securely until you confirm you've received the item, then it's released to the seller. You can also arrange payment directly with a seller, but we can't help resolve a problem that happened entirely off-platform.",
+    a: "Meet the seller, inspect the item, then pay in the app through Paystack. Your payment goes straight to the seller's bank account, and ADY does not hold your money. You have 48 hours to report a problem, and you get a refund if the seller does not hand over the item or hands over a different one. See the Payments and Refund pages for details. Deals made outside the app get no protection.",
   },
   {
     q: "How do I delete my account?",

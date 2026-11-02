@@ -4,7 +4,7 @@ import { formatNaira } from "../components/ListingCard";
 import { resolveUploadUrl } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
-const TABS = ["Overview", "Users", "Listings", "Reports", "Disputes", "Risk Flags"];
+const TABS = ["Overview", "Users", "Listings", "Reports", "Disputes", "Seller Debts", "Risk Flags"];
 
 const RISK_STYLE = {
   LOW: "bg-green-100 text-green-700",
@@ -23,6 +23,7 @@ export default function Admin() {
   const [reports, setReports] = useState([]);
   const [disputes, setDisputes] = useState([]);
   const [riskFlags, setRiskFlags] = useState([]);
+  const [debts, setDebts] = useState([]);
   const [actionStatus, setActionStatus] = useState("");
 
   function loadAll() {
@@ -32,6 +33,18 @@ export default function Admin() {
     api.getAdminReports().then((d) => setReports(d.reports)).catch(() => {});
     api.getAdminDisputes().then((d) => setDisputes(d.disputes)).catch(() => {});
     api.getAdminRiskFlags().then((d) => setRiskFlags(d.flags)).catch(() => {});
+    api.getSellerDebts().then((d) => setDebts(d.debts)).catch(() => {});
+  }
+
+  async function handleMarkRepaid(id) {
+    setActionStatus("");
+    try {
+      await api.markRefundRepaid(id);
+      setActionStatus("Marked as repaid.");
+      loadAll();
+    } catch (err) {
+      setActionStatus(err.message);
+    }
   }
 
   useEffect(loadAll, []);
@@ -90,7 +103,7 @@ export default function Admin() {
     setActionStatus("");
     try {
       await api.releaseDisputeFunds(id);
-      setActionStatus("Funds released to seller.");
+      setActionStatus("Ruled for the seller. The sale is complete.");
       loadAll();
     } catch (err) {
       setActionStatus(err.message);
@@ -101,7 +114,7 @@ export default function Admin() {
     setActionStatus("");
     try {
       await api.refundDisputeBuyer(id);
-      setActionStatus("Funds refunded to buyer.");
+      setActionStatus("Buyer refunded. The seller has 3 days to repay.");
       loadAll();
     } catch (err) {
       setActionStatus(err.message);
@@ -283,16 +296,38 @@ export default function Admin() {
                 {d.transaction && d.transaction.status === "DISPUTED" && (
                   <>
                     <button onClick={() => handleReleaseFunds(d.id)} className="text-xs bg-brand-500 text-white rounded-md px-3 py-1.5">
-                      Rule for seller — release funds
+                      Rule for seller
                     </button>
                     <button onClick={() => handleRefundBuyer(d.id)} className="text-xs bg-ink-900 text-white rounded-md px-3 py-1.5">
-                      Rule for buyer — refund
+                      Rule for buyer and refund
                     </button>
                   </>
                 )}
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === "Seller Debts" && (
+        <div className="space-y-3">
+          <p className="text-xs text-ink-500">Refunds ADY paid to buyers that the seller has not repaid yet. Sellers past the due date cannot post.</p>
+          {debts.length === 0 && <p className="text-sm text-ink-500">No unpaid refunds.</p>}
+          {debts.map((t) => {
+            const overdue = t.sellerRepayDueAt && new Date(t.sellerRepayDueAt) < new Date();
+            return (
+              <div key={t.id} className="border border-ink-300/40 rounded-lg p-3 bg-white text-sm flex items-center gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{t.seller.name} owes ₦{(t.totalAmount / 100).toLocaleString("en-NG")}</p>
+                  <p className="text-xs text-ink-500 truncate">{t.listing.title} · {t.seller.email}{t.seller.phone ? ` · ${t.seller.phone}` : ""}</p>
+                  <p className={`text-xs ${overdue ? "text-red-600" : "text-ink-500"}`}>
+                    Due {t.sellerRepayDueAt ? new Date(t.sellerRepayDueAt).toLocaleDateString("en-NG") : "n/a"}{overdue ? " (overdue, posting blocked)" : ""}
+                  </p>
+                </div>
+                <button onClick={() => handleMarkRepaid(t.id)} className="text-xs bg-green-600 text-white rounded-md px-3 py-1.5">Mark repaid</button>
+              </div>
+            );
+          })}
         </div>
       )}
 

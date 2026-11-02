@@ -101,7 +101,8 @@ async function handleChargeSuccess(data) {
   await prisma.transaction.update({
     where: { id: transaction.id },
     data: {
-      status: "HELD",
+      status: "PAID",
+      paidAt: new Date(),
       providerSubaccount: verified.data.subaccount?.subaccount_code || null,
     },
   });

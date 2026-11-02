@@ -30,6 +30,7 @@ export default function Sell() {
 
   const [files, setFiles] = useState([]);
   const [previews, setPreviews] = useState([]);
+  const [repayTick, setRepayTick] = useState(false);
 
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -163,6 +164,8 @@ export default function Sell() {
       Object.entries(form).forEach(([key, value]) => {
         formData.append(key, value);
       });
+
+      formData.append("refundRepaymentAccepted", repayTick ? "true" : "false");
 
       files.forEach((file) => {
         formData.append("images", file);
@@ -637,9 +640,22 @@ export default function Sell() {
           {/* ===================================================
               PUBLISH
           ==================================================== */}
+          <label className="flex items-start gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={repayTick}
+              onChange={(e) => setRepayTick(e.target.checked)}
+              className="mt-1"
+            />
+            <span>
+              If a dispute is decided in the buyer's favor, I will repay the buyer's refund within 3 days.
+              I understand I cannot post until I repay.
+            </span>
+          </label>
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || !repayTick}
             className="w-full bg-brand-500 hover:bg-brand-600 active:scale-[0.99] text-white rounded-xl py-3.5 text-sm font-semibold disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-lg"
           >
             {submitting ? (
