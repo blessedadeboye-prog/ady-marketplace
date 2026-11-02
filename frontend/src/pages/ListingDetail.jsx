@@ -199,7 +199,7 @@ export default function ListingDetail() {
           </div>
         </div>
 
-        {!isOwner && listing.status === "ACTIVE" && !transaction && listing.canPay && (
+        {!isOwner && listing.status === "ACTIVE" && (!transaction || transaction.status === "PENDING") && listing.canPay && (
           <div className="mt-4 border border-brand-200 bg-brand-50 rounded-md p-3">
             <p className="text-sm font-medium mb-1">Inspect first, then pay in the app</p>
             <p className="text-xs text-ink-500 mb-2">
@@ -226,15 +226,11 @@ export default function ListingDetail() {
           </div>
         )}
 
-        {!isOwner && listing.status === "ACTIVE" && !transaction && !listing.canPay && (
+        {!isOwner && listing.status === "ACTIVE" && (!transaction || transaction.status === "PENDING") && !listing.canPay && (
           <p className="mt-4 text-xs text-ink-500">
             Payment in the app works for items from {formatNaira(listing.payLimits?.min ?? 5000)} to {formatNaira(listing.payLimits?.max ?? 20000)}
             {" "}from sellers who connected a bank account. Otherwise, meet in person and follow the Safety Tips.
           </p>
-        )}
-
-        {transaction && transaction.status === "PENDING" && (
-          <p className="mt-4 text-sm text-ink-500">Payment started. Complete checkout to finish this purchase.</p>
         )}
 
         {transaction && transaction.status === "PAID" && transaction.buyerId === user?.id && (

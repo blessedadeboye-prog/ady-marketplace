@@ -175,7 +175,7 @@ export default function Profile() {
         <div className="mt-6 border-t border-ink-300/40 pt-6">
           <h2 className="text-sm font-semibold mb-2">Payout details</h2>
           {payoutStatus?.hasPayoutAccount ? (
-            <p className="text-sm text-green-700">✓ Payout account connected — sales pay out to your bank automatically once a buyer confirms receipt.</p>
+            <p className="text-sm text-green-700">✓ Payout account connected. Buyers pay you straight to this bank account when they pay in the app.</p>
           ) : showPayoutForm ? (
             <form onSubmit={handlePayoutSubmit} className="space-y-3">
               <div>
@@ -215,7 +215,7 @@ export default function Profile() {
             </form>
           ) : (
             <div>
-              <p className="text-xs text-ink-500 mb-2">Add your bank details so payments from sales go straight to you once a buyer confirms receipt — no manual payout needed.</p>
+              <p className="text-xs text-ink-500 mb-2">Add your bank details so buyers pay you straight to your bank account when they pay in the app. No manual payout needed. The account name must match your bank account exactly.</p>
               <button
                 onClick={() => { setShowPayoutForm(true); loadBanksIfNeeded(); }}
                 className="text-sm border border-ink-300 rounded-md px-4 py-2 hover:bg-ink-100"
