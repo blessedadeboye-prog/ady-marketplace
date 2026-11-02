@@ -9,11 +9,11 @@ export default function Help() {
       <p className="text-ink-500 mb-6">Need a hand with something? Here's how to reach us, or find a quick answer yourself.</p>
 
       <div className="grid gap-3 mb-8">
-        <a href="mailto:adymarketplace76@gmail.com" className="flex items-center gap-3 border border-ink-300/40 rounded-lg p-4 bg-white hover:bg-ink-100">
+        <a href="mailto:contact@adymarketplace.com" className="flex items-center gap-3 border border-ink-300/40 rounded-lg p-4 bg-white hover:bg-ink-100">
           <Mail size={18} className="text-brand-600" />
           <div>
             <p className="font-medium">Email us</p>
-            <p className="text-ink-500 text-xs">adymarketplace76@gmail.com</p>
+            <p className="text-ink-500 text-xs">contact@adymarketplace.com</p>
           </div>
         </a>
         <a href="tel:+2348071569877" className="flex items-center gap-3 border border-ink-300/40 rounded-lg p-4 bg-white hover:bg-ink-100">

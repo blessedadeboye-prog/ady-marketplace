@@ -53,7 +53,7 @@ export default function FAQ() {
 
       <div className="mt-8 text-center border-t border-ink-300/40 pt-6">
         <p className="text-sm text-ink-500 mb-2">Still have questions?</p>
-        <a href="mailto:adymarketplace76@gmail.com" className="inline-block bg-brand-500 hover:bg-brand-600 text-white rounded-md px-4 py-2 text-sm font-medium">
+        <a href="mailto:contact@adymarketplace.com" className="inline-block bg-brand-500 hover:bg-brand-600 text-white rounded-md px-4 py-2 text-sm font-medium">
           Contact Support
         </a>
       </div>
