@@ -239,7 +239,9 @@ router.patch("/disputes/:id/release-funds", async (req, res) => {
       return res.status(400).json({ error: "This dispute has no linked payment to release" });
     }
     await releaseTransactionFunds(dispute.transaction.id);
-    res.json({ message: "Funds released to seller" });
+    // Ruling for the seller: the buyer's claim is rejected, so close the dispute.
+    await prisma.dispute.update({ where: { id: dispute.id }, data: { status: "REJECTED" } });
+    res.json({ message: "Ruled for the seller. The sale is complete." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Could not release funds" });
@@ -257,7 +259,9 @@ router.patch("/disputes/:id/refund-buyer", async (req, res) => {
       return res.status(400).json({ error: "This dispute has no linked payment to refund" });
     }
     await refundTransactionToBuyer(dispute.transaction.id);
-    res.json({ message: "Funds refunded to buyer" });
+    // Ruling for the buyer: the claim is upheld, so close the dispute.
+    await prisma.dispute.update({ where: { id: dispute.id }, data: { status: "RESOLVED" } });
+    res.json({ message: "Buyer refunded. The seller has 3 days to repay." });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: err.message || "Could not refund buyer" });
