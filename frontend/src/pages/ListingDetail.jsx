@@ -182,6 +182,9 @@ export default function ListingDetail() {
           <CopyButton text={`${window.location.origin}/listing/${id}`} label="Copy link" />
         </div>
         <p className="text-2xl text-brand-600 font-semibold mt-2">{formatNaira(listing.price)}</p>
+        {listing.status === "ACTIVE" && listing.quantity > 1 && (
+          <p className="text-sm text-ink-500 mt-1">{listing.quantity} available</p>
+        )}
         <p className="text-sm text-ink-500 mt-1">{CONDITION_LABEL[listing.condition]} · {listing.location} · {listing.category?.name}</p>
 
         <p className="mt-4 text-sm whitespace-pre-line">{listing.description}</p>

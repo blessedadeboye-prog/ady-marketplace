@@ -125,6 +125,10 @@ router.post("/", requireAuth, requireVerified, upload.array("images", 6), async 
     if (!title || !price || !categoryId || !condition || !location) {
       return res.status(400).json({ error: "Please fill in all required fields" });
     }
+    const quantity = req.body.quantity === undefined || req.body.quantity === "" ? 1 : Number(req.body.quantity);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) {
+      return res.status(400).json({ error: "Quantity must be a whole number from 1 to 999." });
+    }
     if (refundRepaymentAccepted !== "true") {
       return res.status(400).json({
         error: "Please tick the box agreeing to repay a refund within 3 days if a dispute goes the buyer's way.",
@@ -148,7 +152,7 @@ router.post("/", requireAuth, requireVerified, upload.array("images", 6), async 
 
     const listing = await prisma.listing.create({
       data: {
-        title, description, price: parseFloat(price), categoryId, condition, location,
+        title, description, price: parseFloat(price), quantity, categoryId, condition, location,
         sellerId: req.user.id,
         refundRepaymentAcceptedAt: new Date(),
       },
@@ -189,6 +193,15 @@ router.patch("/:id", requireAuth, async (req, res) => {
     const { title, description, price, condition, location } = req.body;
     const data = { title, description, condition, location };
     if (price !== undefined) data.price = parseFloat(price);
+    if (req.body.quantity !== undefined) {
+      const quantity = Number(req.body.quantity);
+      if (!Number.isInteger(quantity) || quantity < 1 || quantity > 999) {
+        return res.status(400).json({ error: "Quantity must be a whole number from 1 to 999." });
+      }
+      data.quantity = quantity;
+      // Restocking a sold-out listing puts it back on sale.
+      if (listing.status === "SOLD" && listing.quantity <= 0) data.status = "ACTIVE";
+    }
     Object.keys(data).forEach((k) => data[k] === undefined && delete data[k]);
 
     const updated = await prisma.listing.update({ where: { id: req.params.id }, data });
@@ -207,7 +220,7 @@ router.patch("/:id/sold", requireAuth, async (req, res) => {
     if (listing.sellerId !== req.user.id) {
       return res.status(403).json({ error: "You can only update your own listings" });
     }
-    const updated = await prisma.listing.update({ where: { id: req.params.id }, data: { status: "SOLD" } });
+    const updated = await prisma.listing.update({ where: { id: req.params.id }, data: { status: "SOLD", quantity: 0 } });
     res.json({ listing: updated });
   } catch (err) {
     console.error("mark sold error:", err);

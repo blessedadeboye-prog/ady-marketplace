@@ -76,6 +76,7 @@ model Listing {
   title       String
   description String
   price       Float
+  quantity    Int               @default(1) // units in stock; each paid sale takes one, a refund gives one back
   condition   String            @default("GOOD")
   location    String
   status      String            @default("ACTIVE")

@@ -56,6 +56,9 @@ router.post("/", requireAuth, requireVerified, async (req, res) => {
     if (listing.status !== "ACTIVE") {
       return res.status(400).json({ error: "This listing is not available for purchase" });
     }
+    if (listing.quantity < 1) {
+      return res.status(400).json({ error: "This item is sold out." });
+    }
     if (listing.seller.id === req.user.id) {
       return res.status(400).json({ error: "You cannot buy your own listing" });
     }
@@ -253,6 +256,17 @@ async function refundTransactionToBuyer(transactionId) {
     where: { id: transactionId },
     data: { status: "REFUNDED", refundedAt: new Date(), sellerRepayDueAt: dueAt },
   });
+
+  // The buyer got the money back, so the unit goes back on sale.
+  // A listing the seller marked sold by hand stays sold: only a sold-out listing reopens.
+  const listing = await prisma.listing.findUnique({ where: { id: transaction.listingId } });
+  if (listing) {
+    const soldOut = listing.quantity <= 0 && listing.status === "SOLD";
+    await prisma.listing.update({
+      where: { id: listing.id },
+      data: { quantity: { increment: 1 }, ...(soldOut ? { status: "ACTIVE" } : {}) },
+    });
+  }
 }
 
 module.exports = router;

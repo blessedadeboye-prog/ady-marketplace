@@ -107,12 +107,18 @@ async function handleChargeSuccess(data) {
     },
   });
 
-  // Take the listing off the market now that it's paid for — also lines up
-  // with Phase 1's review flow, which only allows reviewing SOLD listings.
-  await prisma.listing.update({
+  // One unit is sold. When the last unit goes, the listing leaves the market
+  // (this also lines up with the review flow, which only allows reviewing SOLD listings).
+  const afterSale = await prisma.listing.update({
     where: { id: transaction.listingId },
-    data: { status: "SOLD" },
+    data: { quantity: { decrement: 1 } },
   });
+  if (afterSale.quantity <= 0) {
+    await prisma.listing.update({
+      where: { id: transaction.listingId },
+      data: { quantity: 0, status: "SOLD" },
+    });
+  }
 
   await prisma.paymentWebhookEvent.updateMany({
     where: { rawPayload: { contains: reference } },

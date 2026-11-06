@@ -23,6 +23,7 @@ export default function Sell() {
     title: "",
     description: "",
     price: "",
+    quantity: "1",
     condition: "GOOD",
     location: "",
     categoryId: "",
@@ -376,6 +377,25 @@ export default function Sell() {
                     className="w-full border border-ink-300/60 rounded-lg pl-8 pr-3 py-2.5 text-sm outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
                   />
                 </div>
+              </div>
+
+              {/* Quantity */}
+              <div>
+                <label htmlFor="quantity" className="text-sm font-medium block mb-1.5">
+                  How many do you have?
+                </label>
+                <input
+                  id="quantity"
+                  required
+                  type="number"
+                  min="1"
+                  max="999"
+                  step="1"
+                  value={form.quantity}
+                  onChange={update("quantity")}
+                  className="w-full border border-ink-300/60 rounded-lg px-3 py-2.5 text-sm outline-none transition-all focus:border-brand-500 focus:ring-2 focus:ring-brand-500/10"
+                />
+                <p className="text-xs text-ink-400 mt-1">Each paid sale takes one off. The listing closes when none are left.</p>
               </div>
 
               {/* Condition */}
